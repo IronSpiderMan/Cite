@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, FolderOpen, Star, X } from 'lucide-react'
+import { ExternalLink, FolderOpen, Pencil, Star, X } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { expandToSentence, expandToWord, extractParagraphsFromHtml, extractParagraphsFromText, safeParseTextSelector } from '../../lib/reader'
 import { htmlToMarkdown } from '../../lib/htmlToMarkdown'
 import type { Annotation, AnnotationMode, DbTag, Item, TextSelector } from '../../types'
 import { Markdown } from '../Markdown'
+import { EditItemModal } from '../modals/EditItemModal'
 
 export function DetailView({
   item,
@@ -16,6 +17,7 @@ export function DetailView({
   onRefreshItems,
   onRefreshTags,
   onToggleFavorite,
+  onUpdateItem,
 }: {
   item: Item
   activeTab: string
@@ -26,6 +28,7 @@ export function DetailView({
   onRefreshItems: () => void | Promise<void>
   onRefreshTags: () => void | Promise<void>
   onToggleFavorite: (item: Item) => void | Promise<void>
+  onUpdateItem: (next: Item) => void
 }) {
   const isWebUrl = /^https?:\/\//.test(item.url)
   const [detailView, setDetailView] = useState<'source' | 'snapshot' | 'reader'>(() => {
@@ -43,6 +46,12 @@ export function DetailView({
   const [tagQuery, setTagQuery] = useState('')
   const [isTagSuggestOpen, setIsTagSuggestOpen] = useState(false)
   const contentFormat = item.content_format || 'html'
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [editTitle, setEditTitle] = useState('')
+  const [editUrl, setEditUrl] = useState('')
+  const [editContent, setEditContent] = useState('')
+  const [editFormat, setEditFormat] = useState<'markdown' | 'text'>('markdown')
+  const [isSavingEdit, setIsSavingEdit] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -72,6 +81,15 @@ export function DetailView({
       cancelled = true
     }
   }, [item.id, contentFormat])
+
+  useEffect(() => {
+    setEditTitle(item.title || '')
+    setEditUrl(item.url || '')
+    setEditContent(item.content || '')
+    setEditFormat((item.content_format === 'text' ? 'text' : 'markdown') as 'markdown' | 'text')
+    setIsEditOpen(false)
+    setIsSavingEdit(false)
+  }, [item.id])
 
   const refreshAnnotations = async () => {
     const rows = await window.electronAPI.db.getAnnotations(item.id)
@@ -265,8 +283,54 @@ export function DetailView({
     }
   }
 
+  const canEditContent = (item.content_format || 'html') === 'markdown' || (item.content_format || 'html') === 'text'
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (isSavingEdit) return
+    setIsSavingEdit(true)
+    try {
+      const updates: any = {
+        title: editTitle.trim() || t('items.untitled'),
+        url: editUrl.trim() || item.url,
+      }
+      if (canEditContent) {
+        updates.content = editContent
+        updates.content_format = editFormat
+      }
+      await window.electronAPI.db.updateItem(item.id, updates)
+      const next: Item = { ...item, ...updates }
+      onUpdateItem(next)
+      await onRefreshItems()
+      setIsEditOpen(false)
+    } catch (error) {
+      console.error('Failed to update item:', error)
+    } finally {
+      setIsSavingEdit(false)
+    }
+  }
+
   return (
     <>
+      <EditItemModal
+        open={isEditOpen}
+        title={editTitle}
+        url={editUrl}
+        content={editContent}
+        contentFormat={editFormat}
+        canEditContent={canEditContent}
+        isSaving={isSavingEdit}
+        t={t}
+        onChangeTitle={setEditTitle}
+        onChangeUrl={setEditUrl}
+        onChangeContent={setEditContent}
+        onChangeContentFormat={setEditFormat}
+        onClose={() => {
+          if (isSavingEdit) return
+          setIsEditOpen(false)
+        }}
+        onSave={handleSaveEdit}
+      />
       <header className="h-11 border-b border-border flex items-center justify-between px-4 drag-region bg-background/80 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-3 overflow-hidden">
           <button onClick={onBack} className="p-1 hover:bg-muted rounded-md -ml-1 no-drag" title="Back">
@@ -277,6 +341,13 @@ export function DetailView({
           </h1>
         </div>
         <div className="flex items-center gap-1 no-drag">
+          <button
+            onClick={() => setIsEditOpen(true)}
+            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+            title={t('modal.editItem.title')}
+          >
+            <Pencil size={18} />
+          </button>
           <button
             onClick={() => onToggleFavorite(item)}
             className={cn(

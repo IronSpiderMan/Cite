@@ -460,6 +460,7 @@ function App() {
             onRefreshItems={fetchItems}
             onRefreshTags={fetchTags}
             onToggleFavorite={handleToggleFavorite}
+            onUpdateItem={(next) => setSelectedItem(next)}
           />
         ) : (
           <>
