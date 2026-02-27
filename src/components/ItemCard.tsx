@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { LayoutGrid, Star, Trash2 } from 'lucide-react'
 import { cn } from '../lib/cn'
 import type { Item } from '../types'
@@ -13,6 +14,17 @@ export function ItemCard({
   onDelete: (id: number) => void
   onToggleFavorite: (item: Item) => void
 }) {
+  const [thumbFailed, setThumbFailed] = useState(false)
+
+  const snapshotPath = item.snapshot_path || ''
+  const isWebSnapshot = !!snapshotPath && (snapshotPath.startsWith('snapshot://') || snapshotPath.endsWith('.mhtml') || snapshotPath.endsWith('.html'))
+  const thumbSrc = isWebSnapshot
+    ? snapshotPath
+        .replace(/\/index\.html?$/i, '/thumb.png')
+        .replace(/\/snapshot\.mhtml?$/i, '/thumb.png')
+        .replace(/\/[^/]+\.html?$/i, '/thumb.png')
+    : null
+
   return (
     <div
       key={item.id}
@@ -25,13 +37,22 @@ export function ItemCard({
       className="group border border-border/60 rounded-xl overflow-hidden bg-card hover:shadow-lg hover:border-border/80 transition-all duration-300 cursor-pointer flex flex-col h-[280px]"
     >
       <div className="h-36 bg-muted/50 relative overflow-hidden flex items-center justify-center">
-        {item.snapshot_path && (item.snapshot_path.startsWith('snapshot://') || item.snapshot_path.endsWith('.mhtml') || item.snapshot_path.endsWith('.html')) ? (
-          <div className="flex flex-col items-center gap-2 text-muted-foreground/50">
-            <div className="p-3 rounded-full bg-background shadow-sm">
-              <LayoutGrid size={24} />
+        {isWebSnapshot ? (
+          !thumbFailed && thumbSrc ? (
+            <img
+              src={thumbSrc}
+              alt={item.title}
+              className="w-full h-full object-cover"
+              onError={() => setThumbFailed(true)}
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-2 text-muted-foreground/50">
+              <div className="p-3 rounded-full bg-background shadow-sm">
+                <LayoutGrid size={24} />
+              </div>
+              <span className="text-[10px] font-medium uppercase tracking-wider">Webpage Snapshot</span>
             </div>
-            <span className="text-[10px] font-medium uppercase tracking-wider">Webpage Snapshot</span>
-          </div>
+          )
         ) : item.snapshot_path ? (
           <img src={item.snapshot_path} alt={item.title} className="w-full h-full object-cover" />
         ) : (
@@ -74,4 +95,3 @@ export function ItemCard({
     </div>
   )
 }
-

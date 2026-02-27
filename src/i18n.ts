@@ -47,6 +47,9 @@ const zh: Dict = {
   'modal.addItem.preview': '预览',
   'modal.addItem.previewEmpty': '暂无内容',
   'modal.cancel': '取消',
+  'modal.delete.title': '删除条目',
+  'modal.delete.deleteLocal': '同时删除本地快照文件',
+  'modal.delete.confirm': '删除',
   'modal.addItem.add': '添加',
   'modal.addItem.capturing': '抓取中…',
 
@@ -149,6 +152,9 @@ const en: Dict = {
   'modal.addItem.preview': 'Preview',
   'modal.addItem.previewEmpty': 'No content',
   'modal.cancel': 'Cancel',
+  'modal.delete.title': 'Delete item',
+  'modal.delete.deleteLocal': 'Also delete local snapshot files',
+  'modal.delete.confirm': 'Delete',
   'modal.addItem.add': 'Add',
   'modal.addItem.capturing': 'Capturing…',
 

@@ -111,10 +111,10 @@ export async function captureSnapshot(url: string) {
     await win.loadURL(url, { extraHeaders });
     const lf: any = loadFailure;
     if (lf) throw new Error(`Page load failed (${lf.code}): ${lf.description} (${lf.validatedURL})`);
-    await waitForReady(win, 30000);
-    await delay(500);
-    await waitForReadableContent(win, 30000);
-    await autoScrollForLazyLoads(win, 30000);
+    await waitForReady(win, 15000);
+    await delay(300);
+    await waitForReadableContent(win, 8000);
+    await autoScrollForLazyLoads(win, 8000);
     
     const title = win.getTitle();
     
@@ -128,17 +128,21 @@ export async function captureSnapshot(url: string) {
     fs.mkdirSync(outDir, { recursive: true });
     const mhtmlPath = path.join(outDir, 'snapshot.mhtml');
     const htmlPath = path.join(outDir, 'index.html');
+    const thumbPath = path.join(outDir, 'thumb.png');
+
+    try {
+      const image = await withTimeout(win.webContents.capturePage({ x: 0, y: 0, width: 1200, height: 630 } as any), 8000, 'capturePage thumb timed out');
+      fs.writeFileSync(thumbPath, image.toPNG());
+    } catch {}
 
     try {
       await withTimeout(win.webContents.savePage(mhtmlPath, 'MHTML'), 45000, 'savePage(MHTML) timed out');
-      try {
-        await materializeMhtmlToDir(mhtmlPath, outDir, url);
-        return {
-          title,
-          content,
-          snapshot_path: `snapshot://${id}/index.html`
-        };
-      } catch {}
+      void materializeMhtmlToDir(mhtmlPath, outDir, url).catch(() => {});
+      return {
+        title,
+        content,
+        snapshot_path: `snapshot://${id}/index.html`
+      };
     } catch {}
 
     try {
@@ -153,6 +157,9 @@ export async function captureSnapshot(url: string) {
     const pngPath = path.join(outDir, 'snapshot.png');
     const image = await withTimeout(win.webContents.capturePage(), 15000, 'capturePage timed out');
     fs.writeFileSync(pngPath, image.toPNG());
+    try {
+      if (!fs.existsSync(thumbPath)) fs.copyFileSync(pngPath, thumbPath);
+    } catch {}
     return {
       title,
       content,

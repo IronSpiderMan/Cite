@@ -13,7 +13,6 @@ dist-ssr
 dist-electron
 release
 out
-build
 coverage
 .tmp-snapshots
 .cite-user-data

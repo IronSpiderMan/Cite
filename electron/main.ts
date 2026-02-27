@@ -239,6 +239,45 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle('snapshot:capture', (_, url) => captureSnapshot(url));
+  ipcMain.handle('snapshot:deleteLocal', async (_, snapshotPath: string) => {
+    try {
+      if (typeof snapshotPath !== 'string' || !snapshotPath) return false;
+
+      let removed = false;
+
+      if (snapshotPath.startsWith('snapshot://')) {
+        const u = new URL(snapshotPath);
+        const id = u.hostname;
+        if (!id) return false;
+
+        const roots = Array.from(new Set([getEffectiveSnapshotDir(), path.join(app.getPath('userData'), 'snapshots')].filter(Boolean)));
+        for (const root of roots) {
+          const base = path.join(root, id);
+          const baseResolved = path.resolve(base);
+          const rootResolved = path.resolve(root) + path.sep;
+          if (!baseResolved.startsWith(rootResolved)) continue;
+          if (!fs.existsSync(baseResolved)) continue;
+          fs.rmSync(baseResolved, { recursive: true, force: true });
+          removed = true;
+        }
+        return removed;
+      }
+
+      if (path.isAbsolute(snapshotPath)) {
+        const p = path.resolve(snapshotPath);
+        if (fs.existsSync(p)) {
+          const stat = fs.statSync(p);
+          if (stat.isDirectory()) fs.rmSync(p, { recursive: true, force: true });
+          else fs.rmSync(p, { force: true });
+          removed = true;
+        }
+      }
+
+      return removed;
+    } catch {
+      return false;
+    }
+  });
 
   ipcMain.handle('shell:showSnapshotInFolder', async (_, snapshotPath: string) => {
     try {

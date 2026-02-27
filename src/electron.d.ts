@@ -34,6 +34,7 @@ declare global {
       },
       snapshot: {
         capture: (url: string) => Promise<{ title: string, content: string, snapshot_path: string }>;
+        deleteLocal: (snapshotPath: string) => Promise<boolean>;
       },
       shell: {
         showSnapshotInFolder: (snapshotPath: string) => Promise<boolean>;

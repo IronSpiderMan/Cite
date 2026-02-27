@@ -7,6 +7,7 @@ import { ItemsView } from './components/ItemsView'
 import { DetailView } from './components/detail/DetailView'
 import { AddItemModal } from './components/modals/AddItemModal'
 import { CollectionModal } from './components/modals/CollectionModal'
+import { DeleteItemModal } from './components/modals/DeleteItemModal'
 import { TagManagerModal } from './components/modals/TagManagerModal'
 import { SettingsModal } from './components/modals/SettingsModal'
 
@@ -30,6 +31,10 @@ function App() {
   const [isAdding, setIsAdding] = useState(false)
 
   const [selectedItem, setSelectedItem] = useState<Item | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
+  const [deleteAlsoLocal, setDeleteAlsoLocal] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [settings, setSettings] = useState<{ snapshotDir: string | null; theme: ThemeMode; language: Language }>({
     snapshotDir: null,
@@ -205,16 +210,30 @@ function App() {
     }
   }
 
-  const handleDeleteItem = async (id: number) => {
-    const ok = window.confirm(tt('confirm.deleteItem'))
-    if (!ok) return
+  const handleDeleteItem = (id: number) => {
+    setDeleteTargetId(id)
+    setDeleteAlsoLocal(false)
+    setIsDeleteModalOpen(true)
+  }
+
+  const confirmDeleteItem = async () => {
+    if (deleteTargetId == null) return
+    const target = items.find((i) => i.id === deleteTargetId) || (selectedItem?.id === deleteTargetId ? selectedItem : null)
+    setIsDeleting(true)
     try {
-      await window.electronAPI.db.deleteItem(id)
-      if (selectedItem?.id === id) setSelectedItem(null)
+      await window.electronAPI.db.deleteItem(deleteTargetId)
+      if (deleteAlsoLocal && target?.snapshot_path) {
+        await window.electronAPI.snapshot.deleteLocal(target.snapshot_path)
+      }
+      if (selectedItem?.id === deleteTargetId) setSelectedItem(null)
       fetchItems()
+      setIsDeleteModalOpen(false)
+      setDeleteTargetId(null)
     } catch (error) {
       console.error('Failed to delete item:', error)
       alert(tt('alert.deleteFailed'))
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -338,6 +357,22 @@ function App() {
         onImportFile={importTextFile}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddItem}
+      />
+
+      <DeleteItemModal
+        open={isDeleteModalOpen}
+        itemTitle={(items.find((i) => i.id === deleteTargetId)?.title || (selectedItem?.id === deleteTargetId ? selectedItem?.title : '') || '').trim() || tt('items.untitled')}
+        hasSnapshot={!!(items.find((i) => i.id === deleteTargetId)?.snapshot_path || (selectedItem?.id === deleteTargetId ? selectedItem?.snapshot_path : null))}
+        deleteLocal={deleteAlsoLocal}
+        isDeleting={isDeleting}
+        t={tt}
+        onChangeDeleteLocal={setDeleteAlsoLocal}
+        onClose={() => {
+          if (isDeleting) return
+          setIsDeleteModalOpen(false)
+          setDeleteTargetId(null)
+        }}
+        onConfirm={confirmDeleteItem}
       />
 
       <CollectionModal

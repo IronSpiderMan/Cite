@@ -32,6 +32,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   snapshot: {
     capture: (url: string) => ipcRenderer.invoke('snapshot:capture', url),
+    deleteLocal: (snapshotPath: string) => ipcRenderer.invoke('snapshot:deleteLocal', snapshotPath),
   },
   shell: {
     showSnapshotInFolder: (snapshotPath: string) => ipcRenderer.invoke('shell:showSnapshotInFolder', snapshotPath),
