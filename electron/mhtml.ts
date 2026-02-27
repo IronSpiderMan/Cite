@@ -76,6 +76,15 @@ function toPosix(p: string) {
   return p.replace(/\\/g, '/')
 }
 
+function rewriteCidEverywhere(urlToRel: Record<string, string>, input: string) {
+  let out = input
+  for (const [k, rel] of Object.entries(urlToRel)) {
+    if (!k.startsWith('cid:')) continue
+    out = out.split(k).join(rel)
+  }
+  return out
+}
+
 function resolveToRel(map: Record<string, string>, fileNameToRel: Record<string, string | null>, rawUrl: string) {
   const s = (rawUrl || '').trim()
   if (!s) return null
@@ -195,7 +204,8 @@ function rewriteTextFilesUnder(outDir: string, map: Record<string, string>, file
       try {
         const buf = fs.readFileSync(abs)
         const text = buf.toString('utf8')
-        const rewritten = ext === '.css' ? rewriteCssText(map, fileNameToRel, text) : rewriteHtmlText(map, fileNameToRel, text)
+        const rewritten0 = ext === '.css' ? rewriteCssText(map, fileNameToRel, text) : rewriteHtmlText(map, fileNameToRel, text)
+        const rewritten = rewriteCidEverywhere(map, rewritten0)
         if (rewritten !== text) fs.writeFileSync(abs, rewritten, 'utf8')
       } catch {}
     }
@@ -237,7 +247,8 @@ export async function materializeMhtmlToDir(mhtmlPath: string, outDir: string, o
     const contentLocation = partHeaders['content-location'] || ''
     const contentIdRaw = partHeaders['content-id'] || ''
     const contentId = contentIdRaw.replace(/[<>]/g, '').trim()
-    const keyLocation = contentLocation || (contentId ? `cid:${contentId}` : '')
+    const cidKey = contentId ? `cid:${contentId}` : ''
+    const primaryKey = contentLocation || cidKey
 
     let data: Buffer
     if (transfer === 'base64') {
@@ -254,11 +265,11 @@ export async function materializeMhtmlToDir(mhtmlPath: string, outDir: string, o
       continue
     }
 
-    if (!keyLocation) continue
+    if (!primaryKey) continue
 
     let u: URL | null = null
     try {
-      u = baseUrl ? new URL(keyLocation, baseUrl) : new URL(keyLocation)
+      u = baseUrl ? new URL(primaryKey, baseUrl) : new URL(primaryKey)
     } catch {
       u = null
     }
@@ -302,7 +313,8 @@ export async function materializeMhtmlToDir(mhtmlPath: string, outDir: string, o
       urlToRel[key] = relPosix
     }
 
-    add(keyLocation)
+    add(primaryKey)
+    if (cidKey) add(cidKey)
     if (u) {
       add(u.toString())
       if (u.protocol === 'http:' || u.protocol === 'https:') {
@@ -317,7 +329,7 @@ export async function materializeMhtmlToDir(mhtmlPath: string, outDir: string, o
   const outHtml = path.join(outDir, 'index.html')
   if (!html) throw new Error('Invalid MHTML: missing HTML part')
 
-  const rewritten = rewriteHtmlText(urlToRel, fileNameToRel, html)
+  const rewritten = rewriteCidEverywhere(urlToRel, rewriteHtmlText(urlToRel, fileNameToRel, html))
 
   fs.writeFileSync(outHtml, rewritten, 'utf8')
   rewriteTextFilesUnder(outDir, urlToRel, fileNameToRel)

@@ -68,7 +68,7 @@ app.whenReady().then(() => {
           const buf = Buffer.alloc(8192);
           const n = fs.readSync(fd, buf, 0, buf.length, 0);
           const head = buf.slice(0, n).toString('utf8');
-          const looksBroken = head.includes('@mhtml.blink') || head.includes('assets/local/assets/local');
+          const looksBroken = head.includes('@mhtml.blink') || head.includes('assets/local/assets/local') || head.includes('cid:');
           if (!looksBroken) return htmlPath;
         } finally {
           fs.closeSync(fd);
