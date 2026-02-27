@@ -1,0 +1,65 @@
+# Cite
+
+A Cubox-like desktop app for saving and reading web pages. It captures pages locally, supports offline snapshots and a reader view, and provides tags, collections, and annotations.
+
+## Features
+
+- Web capture: extracts page content and generates an offline snapshot (HTML + local assets).
+- Three view modes for web items: Source / Snapshot / Reader.
+- Reader view: Markdown and plain-text modes; Markdown supports GFM + code highlighting.
+- Offline snapshots: view in-app and “Open in folder” to locate snapshot files on disk.
+- Tags and favorites: tag management (with colors), filter by tags, favorites view.
+- Collections: create collections and drag items into collections.
+- Annotations: highlight text and add notes in Reader (text mode), with word/sentence/paragraph granularity.
+
+## Development
+
+### Requirements
+
+- Node.js (recommended 20+)
+- npm
+
+### Clone
+
+```bash
+git clone https://github.com/IronSpiderMan/Cite.git
+cd Cite
+```
+
+### Run in dev
+
+```bash
+npm install
+npm run dev
+```
+
+### Build
+
+```bash
+npm run build
+```
+
+### Package
+
+```bash
+npm run dist
+```
+
+## Data & Snapshot Storage
+
+- The database and snapshots are stored under the app data directory by default. You can change the location via Settings → Snapshot Directory.
+- In development mode, Electron `userData` is set to `.cite-user-data/` under the project root for easier debugging and cleanup.
+
+## Known Limitations
+
+- Source mode uses an iframe; some sites may block embedding via `X-Frame-Options`/CSP. Use “Open in Browser” in that case.
+- Collections currently support “create + drag-to-add” only; rename/delete/remove are not implemented yet.
+- The sidebar search box is currently UI-only and not wired to actual search.
+- Offline snapshot fidelity depends on site behavior (loading/anti-bot); re-capture may be required for some sites.
+
+## Tech Stack
+
+- Electron + React + TypeScript + Vite
+- SQLite (better-sqlite3)
+- Tailwind CSS (Typography)
+ 
