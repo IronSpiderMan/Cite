@@ -2,6 +2,12 @@
 
 A Cubox-like desktop app for saving and reading web pages. It captures pages locally, supports offline snapshots and a reader view, and provides tags, collections, and annotations.
 
+## Screenshots
+
+<img src="docs/imgs/screenshot-main.png" width="860" alt="Main" />
+<img src="docs/imgs/screenshot-snapshot.png" width="860" alt="Snapshot" />
+<img src="docs/imgs/screenshot-markdown.png" width="860" alt="Markdown" />
+
 ## Features
 
 - Web capture: extracts page content and generates an offline snapshot (HTML + local assets).
