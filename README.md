@@ -5,9 +5,11 @@ A Cubox-like desktop app for saving and reading web pages. It captures pages loc
 ## Features
 
 - Web capture: extracts page content and generates an offline snapshot (HTML + local assets).
+- Snapshot cover: generates a `thumb.png` thumbnail for web snapshots.
 - Three view modes for web items: Source / Snapshot / Reader.
 - Reader view: Markdown and plain-text modes; Markdown supports GFM + code highlighting.
 - Offline snapshots: view in-app and “Open in folder” to locate snapshot files on disk.
+- Delete with cleanup: optionally delete local snapshot files when deleting an item.
 - Tags and favorites: tag management (with colors), filter by tags, favorites view.
 - Collections: create collections and drag items into collections.
 - Annotations: highlight text and add notes in Reader (text mode), with word/sentence/paragraph granularity.
@@ -38,6 +40,19 @@ npm run dev
 ```bash
 npm run build
 ```
+
+### Icons
+
+App icons are generated from `build/icon.png` (recommended size: 1024×1024).
+
+```bash
+npm run icons
+```
+
+This writes:
+
+- `build/icon.icns` (macOS)
+- `build/icon.ico` (Windows)
 
 ### Package
 
