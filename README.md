@@ -69,7 +69,6 @@ npm run dist
 
 - Source mode uses an iframe; some sites may block embedding via `X-Frame-Options`/CSP. Use “Open in Browser” in that case.
 - Collections currently support “create + drag-to-add” only; rename/delete/remove are not implemented yet.
-- The sidebar search box is currently UI-only and not wired to actual search.
 - Offline snapshot fidelity depends on site behavior (loading/anti-bot); re-capture may be required for some sites.
 
 ## Tech Stack

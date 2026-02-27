@@ -15,6 +15,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('all')
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const [tags, setTags] = useState<DbTag[]>([])
   const [isTagModalOpen, setIsTagModalOpen] = useState(false)
   const [collections, setCollections] = useState<DbCollection[]>([])
@@ -122,6 +123,23 @@ function App() {
       setLoading(false)
     }
   }
+
+  const normalizedQuery = searchQuery.trim().toLowerCase()
+  const filteredItems = normalizedQuery
+    ? items.filter((item) => {
+        const title = (item.title || '').toLowerCase()
+        const url = (item.url || '').toLowerCase()
+        const description = (item.description || '').toLowerCase()
+        const rawContent = (item.content || '').toLowerCase()
+        const plainContent = item.content_format === 'html' ? rawContent.replace(/<[^>]+>/g, ' ') : rawContent
+        return (
+          title.includes(normalizedQuery) ||
+          url.includes(normalizedQuery) ||
+          description.includes(normalizedQuery) ||
+          plainContent.includes(normalizedQuery)
+        )
+      })
+    : items
 
   const loadSettings = async () => {
     try {
@@ -417,6 +435,8 @@ function App() {
       <Sidebar
         activeTab={activeTab}
         onChangeTab={setActiveTab}
+        searchQuery={searchQuery}
+        onChangeSearchQuery={setSearchQuery}
         tags={tags}
         collections={collections}
         t={tt}
@@ -444,7 +464,7 @@ function App() {
           <>
             <ItemsView
               title={listTitle}
-              items={items}
+              items={filteredItems}
               loading={loading}
               onOpenAddItem={openAddModal}
               onOpenSettings={() => setIsSettingsOpen(true)}

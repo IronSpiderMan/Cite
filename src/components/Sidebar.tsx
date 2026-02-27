@@ -7,6 +7,8 @@ import { SidebarItem } from './SidebarItem'
 export function Sidebar({
   activeTab,
   onChangeTab,
+  searchQuery,
+  onChangeSearchQuery,
   tags,
   collections,
   t,
@@ -17,6 +19,8 @@ export function Sidebar({
 }: {
   activeTab: string
   onChangeTab: (tab: string) => void
+  searchQuery: string
+  onChangeSearchQuery: (next: string) => void
   tags: DbTag[]
   collections: DbCollection[]
   t: (key: string) => string
@@ -35,6 +39,8 @@ export function Sidebar({
           <input
             type="text"
             placeholder={t('sidebar.search')}
+            value={searchQuery}
+            onChange={(e) => onChangeSearchQuery(e.target.value)}
             className="bg-transparent border-none outline-none text-sm w-full placeholder:text-muted-foreground"
           />
         </div>
