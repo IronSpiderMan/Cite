@@ -1,11 +1,14 @@
-import { List, PlusCircle, Settings } from 'lucide-react'
+import { LayoutGrid, List, PlusCircle, Settings } from 'lucide-react'
 import type { Item } from '../types'
 import { ItemCard } from './ItemCard'
+import { ItemRow } from './ItemRow'
 
 export function ItemsView({
   title,
   items,
   loading,
+  viewMode,
+  onToggleViewMode,
   onOpenAddItem,
   onOpenSettings,
   t,
@@ -16,6 +19,8 @@ export function ItemsView({
   title: string
   items: Item[]
   loading: boolean
+  viewMode: 'grid' | 'list'
+  onToggleViewMode: () => void
   onOpenAddItem: () => void
   onOpenSettings: () => void
   t: (key: string) => string
@@ -28,8 +33,12 @@ export function ItemsView({
       <header className="h-11 border-b border-border flex items-center justify-between px-4 drag-region bg-background/80 backdrop-blur-md sticky top-0 z-10">
         <h1 className="text-sm font-semibold tracking-tight">{title}</h1>
         <div className="flex items-center gap-1 no-drag">
-          <button className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors">
-            <List size={18} />
+          <button
+            onClick={onToggleViewMode}
+            className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
+            title={viewMode === 'grid' ? t('items.viewList') : t('items.viewGrid')}
+          >
+            {viewMode === 'grid' ? <List size={18} /> : <LayoutGrid size={18} />}
           </button>
           <button
             onClick={onOpenSettings}
@@ -54,11 +63,19 @@ export function ItemsView({
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {items.map((item) => (
-              <ItemCard key={item.id} item={item} onSelect={onSelectItem} onDelete={onDeleteItem} onToggleFavorite={onToggleFavorite} />
-            ))}
-          </div>
+          viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {items.map((item) => (
+                <ItemCard key={item.id} item={item} onSelect={onSelectItem} onDelete={onDeleteItem} onToggleFavorite={onToggleFavorite} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {items.map((item) => (
+                <ItemRow key={item.id} item={item} onSelect={onSelectItem} onDelete={onDeleteItem} onToggleFavorite={onToggleFavorite} />
+              ))}
+            </div>
+          )
         )}
       </main>
     </>

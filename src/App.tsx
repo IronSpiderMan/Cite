@@ -16,6 +16,7 @@ function App() {
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [itemsViewMode, setItemsViewMode] = useState<'grid' | 'list'>('grid')
   const [tags, setTags] = useState<DbTag[]>([])
   const [isTagModalOpen, setIsTagModalOpen] = useState(false)
   const [collections, setCollections] = useState<DbCollection[]>([])
@@ -466,6 +467,8 @@ function App() {
               title={listTitle}
               items={filteredItems}
               loading={loading}
+              viewMode={itemsViewMode}
+              onToggleViewMode={() => setItemsViewMode((v) => (v === 'grid' ? 'list' : 'grid'))}
               onOpenAddItem={openAddModal}
               onOpenSettings={() => setIsSettingsOpen(true)}
               t={tt}

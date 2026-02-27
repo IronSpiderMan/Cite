@@ -16,6 +16,8 @@ const zh: Dict = {
   'items.noItemsDesc': '先添加一个网页到你的收藏库。',
   'items.addItem': '添加条目',
   'items.settings': '设置',
+  'items.viewGrid': '网格视图',
+  'items.viewList': '列表视图',
   'items.untitled': '未命名',
 
   'settings.title': '设置',
@@ -121,6 +123,8 @@ const en: Dict = {
   'items.noItemsDesc': 'Start by adding a new webpage to your collection.',
   'items.addItem': 'Add Item',
   'items.settings': 'Settings',
+  'items.viewGrid': 'Grid view',
+  'items.viewList': 'List view',
   'items.untitled': 'Untitled',
 
   'settings.title': 'Settings',
