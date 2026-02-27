@@ -76,4 +76,12 @@ npm run dist
 - Electron + React + TypeScript + Vite
 - SQLite (better-sqlite3)
 - Tailwind CSS (Typography)
+
+## Buy me a coffee
+
+- China: Alipay / WeChat
+
+  <img src="docs/donate/alipay.png" width="240" alt="Alipay" /> <img src="docs/donate/wechat.png" width="240" alt="WeChat Pay" />
+
+- International: PayPal — https://paypal.me/zacksock
  
