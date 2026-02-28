@@ -184,6 +184,52 @@ app.whenReady().then(() => {
   // Register IPC handlers
   ipcMain.handle('db:getItems', (_, filter) => dbOps.getItems(filter));
   ipcMain.handle('db:addItem', (_, item) => dbOps.addItem(item));
+  ipcMain.handle('db:addUrlItem', async (event, url: string) => {
+    const info = dbOps.addItem({
+      url,
+      title: url,
+      description: '',
+      content: '',
+      content_format: 'html',
+      status: 'pending'
+    });
+    const id = info.lastInsertRowid as number;
+    const sender = event.sender;
+
+    // Async capture
+    (async () => {
+      try {
+        const result = await captureSnapshot(url);
+        const updates = {
+          title: result.title || url,
+          content: result.content,
+          snapshot_path: result.snapshot_path,
+          status: 'completed'
+        };
+        dbOps.updateItem(id, updates);
+        if (!sender.isDestroyed()) {
+           sender.send('item:updated', { id, ...updates });
+        }
+      } catch (e) {
+        console.error('Capture failed for', url, e);
+        dbOps.updateItem(id, { status: 'failed' });
+        if (!sender.isDestroyed()) {
+           sender.send('item:updated', { id, status: 'failed' });
+        }
+      }
+    })();
+
+    return {
+      id,
+      url,
+      title: url,
+      description: '',
+      content: '',
+      content_format: 'html',
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+  });
   ipcMain.handle('db:updateItem', (_, id, updates) => dbOps.updateItem(id, updates));
   ipcMain.handle('db:deleteItem', (_, id) => dbOps.deleteItem(id));
 

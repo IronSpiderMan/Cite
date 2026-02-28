@@ -10,6 +10,7 @@ import { CollectionModal } from './components/modals/CollectionModal'
 import { DeleteItemModal } from './components/modals/DeleteItemModal'
 import { TagManagerModal } from './components/modals/TagManagerModal'
 import { SettingsModal } from './components/modals/SettingsModal'
+import { Toast } from './components/Toast'
 
 function App() {
   const [activeTab, setActiveTab] = useState('all')
@@ -45,11 +46,40 @@ function App() {
   })
   const tt = (key: string) => t(settings.language, key)
 
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+
   useEffect(() => {
     fetchTags()
     fetchCollections()
     loadSettings()
   }, [])
+
+  useEffect(() => {
+    const handleUpdate = (_: any, data: any) => {
+      setItems((prev) => {
+        const exists = prev.find((i) => i.id === data.id)
+        if (exists) {
+          return prev.map((item) => (item.id === data.id ? { ...item, ...data } : item))
+        } else {
+            // New item appeared (e.g. from another window or just created)
+            // But usually addUrlItem returns the item and we fetchItems immediately.
+            // If we receive an update for an item we don't have, it might be safe to fetch or ignore.
+            // Let's just update if exists for now to avoid jumpiness.
+            return prev
+        }
+      })
+      
+      if (data.status === 'completed') {
+        setToastMsg(tt('toast.captureSuccess'))
+      } else if (data.status === 'failed') {
+        setToastMsg(tt('toast.captureFailed'))
+      }
+    }
+    window.electronAPI?.db?.onItemUpdate?.(handleUpdate)
+    return () => {
+      window.electronAPI?.db?.offItemUpdate?.(handleUpdate)
+    }
+  }, [settings.language])
 
   useEffect(() => {
     const root = document.documentElement
@@ -194,15 +224,16 @@ function App() {
         throw new Error('electronAPI is not available. Please run inside Electron.')
       }
       if (newItemMode === 'url') {
-        const snapshot = await window.electronAPI.snapshot.capture(newItemUrl)
-        await window.electronAPI.db.addItem({
-          url: newItemUrl,
-          title: (newItemTitle || '').trim() || snapshot.title || newItemUrl,
-          description: '',
-          content: snapshot.content,
-          content_format: 'html',
-          snapshot_path: snapshot.snapshot_path,
-        })
+        // Use new non-blocking API
+        await window.electronAPI.db.addUrlItem(newItemUrl)
+        setToastMsg(tt('items.processing'))
+        setIsAddModalOpen(false)
+        setNewItemUrl('')
+        setNewItemTitle('')
+        setNewItemContent('')
+        // fetchItems will be triggered by handleUpdate or manual call if needed, 
+        // but here we want to show the pending item immediately.
+        await fetchItems()
       } else {
         await window.electronAPI.db.addItem({
           url: `note://${Date.now()}`,
@@ -212,14 +243,12 @@ function App() {
           content_format: newItemContentFormat,
           snapshot_path: null,
         })
+        setIsAddModalOpen(false)
+        setNewItemUrl('')
+        setNewItemTitle('')
+        setNewItemContent('')
+        await fetchItems()
       }
-
-      // 3. Refresh list
-      setIsAddModalOpen(false)
-      setNewItemUrl('')
-      setNewItemTitle('')
-      setNewItemContent('')
-      fetchItems()
     } catch (error) {
       console.error('Failed to add item:', error)
       const msg = (error as any)?.message ? `${tt('alert.addItemFailed')}\n${String((error as any).message)}` : tt('alert.addItemFailed')
@@ -480,6 +509,7 @@ function App() {
           </>
         )}
       </div>
+      {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg(null)} />}
     </div>
   )
 }

@@ -28,7 +28,8 @@ function initSchema(db: Database.Database) {
       content TEXT,
       snapshot_path TEXT,
       is_favorite INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      status TEXT DEFAULT 'completed'
     );
 
     CREATE TABLE IF NOT EXISTS item_tags (
@@ -62,7 +63,15 @@ function initSchema(db: Database.Database) {
     db.exec('ALTER TABLE items ADD COLUMN content_format TEXT DEFAULT "html"');
   } catch {}
   try {
+    db.exec('ALTER TABLE items ADD COLUMN status TEXT DEFAULT "completed"');
+  } catch {}
+  try {
     db.exec('UPDATE items SET content_format = "html" WHERE content_format IS NULL');
+  } catch {}
+  
+  // Reset pending items to failed on startup to avoid stuck spinners
+  try {
+    db.exec("UPDATE items SET status = 'failed' WHERE status = 'pending'");
   } catch {}
 }
 
@@ -151,12 +160,12 @@ export const dbOps = {
     }
     return [];
   },
-  addItem: (item: { url: string, title: string, description?: string, content?: string, content_format?: 'html' | 'markdown' | 'text', snapshot_path?: string | null }) => {
+  addItem: (item: { url: string, title: string, description?: string, content?: string, content_format?: 'html' | 'markdown' | 'text', snapshot_path?: string | null, status?: string }) => {
     const db = getDb();
     const stmt = db.prepare(
-      'INSERT INTO items (url, title, description, content, content_format, snapshot_path) VALUES (@url, @title, @description, @content, @content_format, @snapshot_path)'
+      'INSERT INTO items (url, title, description, content, content_format, snapshot_path, status) VALUES (@url, @title, @description, @content, @content_format, @snapshot_path, @status)'
     );
-    return stmt.run({ content_format: 'html', snapshot_path: null, ...item });
+    return stmt.run({ content_format: 'html', snapshot_path: null, status: 'completed', description: '', ...item });
   },
   updateItem: (id: number, updates: any) => {
      const db = getDb();

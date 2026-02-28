@@ -5,9 +5,12 @@ declare global {
     electronAPI: {
       db: {
         getItems: (filter?: 'all' | 'favorites' | { collectionId?: number, tagId?: number }) => Promise<any[]>;
-        addItem: (item: { url: string; title: string; description?: string; content?: string; content_format?: 'html' | 'markdown' | 'text'; snapshot_path?: string | null }) => Promise<any>;
+        addItem: (item: { url: string; title: string; description?: string; content?: string; content_format?: 'html' | 'markdown' | 'text'; snapshot_path?: string | null; status?: 'pending' | 'completed' | 'failed' }) => Promise<any>;
+        addUrlItem: (url: string) => Promise<any>;
         updateItem: (id: number, updates: any) => Promise<any>;
         deleteItem: (id: number) => Promise<any>;
+        onItemUpdate?: (callback: (event: any, data: any) => void) => void;
+        offItemUpdate?: (callback: (event: any, data: any) => void) => void;
         getAnnotations: (itemId: number) => Promise<any[]>;
         addAnnotation: (annotation: { item_id: number, content?: string, selector: string, color?: string }) => Promise<any>;
         updateAnnotation: (id: number, updates: any) => Promise<any>;

@@ -38,6 +38,11 @@ export function AddItemModal({
 }) {
   if (!open) return null
 
+  const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault()
+      onSubmit(e)
+  }
+
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-background border border-border rounded-xl shadow-2xl w-full max-w-md p-6">
@@ -47,7 +52,7 @@ export function AddItemModal({
             <X size={18} />
           </button>
         </div>
-        <form onSubmit={onSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4 space-y-3">
             <div>
               <label className="block text-sm font-medium mb-1.5">{t('modal.addItem.mode')}</label>
@@ -157,7 +162,7 @@ export function AddItemModal({
               className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity flex items-center gap-2"
             >
               {isAdding ? <Loader2 size={14} className="animate-spin" /> : null}
-              {mode === 'url' && isAdding ? t('modal.addItem.capturing') : t('modal.addItem.add')}
+              {mode === 'url' ? (isAdding ? t('modal.addItem.capturing') : t('modal.addItem.add')) : t('modal.addItem.add')}
             </button>
           </div>
         </form>

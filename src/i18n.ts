@@ -113,6 +113,10 @@ const zh: Dict = {
   'alert.deleteTagFailed': '删除标签失败。',
   'alert.addTagFailed': '添加标签失败（可能重名）。',
   'alert.updateTagFailed': '更新标签失败（可能重名）。',
+
+  'toast.captureSuccess': '网页抓取完成',
+  'toast.captureFailed': '网页抓取失败',
+  'items.processing': '处理中...',
 }
 
 const en: Dict = {
@@ -226,6 +230,10 @@ const en: Dict = {
   'alert.deleteTagFailed': 'Failed to delete tag.',
   'alert.addTagFailed': 'Failed to add tag (maybe duplicate).',
   'alert.updateTagFailed': 'Failed to update tag (maybe duplicate).',
+
+  'toast.captureSuccess': 'Webpage captured successfully',
+  'toast.captureFailed': 'Webpage capture failed',
+  'items.processing': 'Processing...',
 }
 
 export function t(lang: Language, key: string) {

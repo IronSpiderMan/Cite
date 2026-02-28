@@ -28,6 +28,7 @@ export interface Item {
   snapshot_path: string | null
   is_favorite: number
   created_at: string
+  status?: 'pending' | 'completed' | 'failed'
 }
 
 export interface DbTag {

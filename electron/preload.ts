@@ -4,8 +4,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   db: {
     getItems: (filter: any) => ipcRenderer.invoke('db:getItems', filter),
     addItem: (item: any) => ipcRenderer.invoke('db:addItem', item),
+    addUrlItem: (url: string) => ipcRenderer.invoke('db:addUrlItem', url),
     updateItem: (id: number, updates: any) => ipcRenderer.invoke('db:updateItem', id, updates),
     deleteItem: (id: number) => ipcRenderer.invoke('db:deleteItem', id),
+    onItemUpdate: (callback: (event: any, data: any) => void) => ipcRenderer.on('item:updated', callback),
+    offItemUpdate: (callback: (event: any, data: any) => void) => ipcRenderer.removeListener('item:updated', callback),
     getAnnotations: (itemId: number) => ipcRenderer.invoke('db:getAnnotations', itemId),
     addAnnotation: (annotation: any) => ipcRenderer.invoke('db:addAnnotation', annotation),
     updateAnnotation: (id: number, updates: any) => ipcRenderer.invoke('db:updateAnnotation', id, updates),
